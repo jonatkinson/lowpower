@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Lower power consumption by reducing screen brightness and setting CPU to powersave
+
+# Set screen brightness to 30%
+bright 30%
+
+# Set power profile to powersave
+tuned-adm profile powersave
+
+echo "System set to low power mode"
+
+exit 0
