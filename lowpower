@@ -1,13 +1,30 @@
 #!/bin/bash
 
-# Lower power consumption by reducing screen brightness and setting CPU to powersave
+# Lower power consumption by reducing screen brightness, refresh rate, and setting CPU to powersave
+
+# Check if we have the required tools
+command -v bright >/dev/null 2>&1 || { echo "Error: 'bright' command not found"; exit 1; }
+command -v kscreen-doctor >/dev/null 2>&1 || { echo "Error: 'kscreen-doctor' command not found"; exit 1; }
+command -v tuned-adm >/dev/null 2>&1 || { echo "Error: 'tuned-adm' command not found"; exit 1; }
+command -v notify-send >/dev/null 2>&1 || { echo "Warning: 'notify-send' command not found, notification will not be displayed"; }
 
 # Set screen brightness to 30%
-bright 30%
+bright 30% || echo "Warning: Failed to set brightness"
+
+# Set refresh rate to 60Hz for the laptop display
+# Uses mode 2 which is 2880x1800@60Hz for eDP-1 (internal laptop display)
+if kscreen-doctor -o | grep -q "eDP-1"; then
+    kscreen-doctor output.eDP-1.mode.2 2>/dev/null || echo "Warning: Failed to set refresh rate"
+else
+    echo "Warning: Internal display (eDP-1) not found, skipping refresh rate change"
+fi
 
 # Set power profile to powersave
-tuned-adm profile powersave
+tuned-adm profile powersave || echo "Warning: Failed to set power profile"
 
 echo "System set to low power mode"
+
+# Display notification
+notify-send "Power Management" "Low power settings applied." --icon=battery-low 2>/dev/null
 
 exit 0
