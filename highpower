@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Maximize performance by increasing screen brightness, refresh rate, and setting CPU to balanced
+
+# Check if we have the required tools
+command -v bright >/dev/null 2>&1 || { echo "Error: 'bright' command not found"; exit 1; }
+command -v kscreen-doctor >/dev/null 2>&1 || { echo "Error: 'kscreen-doctor' command not found"; exit 1; }
+command -v tuned-adm >/dev/null 2>&1 || { echo "Error: 'tuned-adm' command not found"; exit 1; }
+command -v notify-send >/dev/null 2>&1 || { echo "Warning: 'notify-send' command not found, notification will not be displayed"; }
+
+# Set screen brightness to 100%
+bright 100% || echo "Warning: Failed to set brightness"
+
+# Set refresh rate to 120Hz for the laptop display
+# Uses mode 1 which is 2880x1800@120Hz for eDP-1 (internal laptop display)
+if kscreen-doctor -o | grep -q "eDP-1"; then
+    kscreen-doctor output.eDP-1.mode.1 2>/dev/null || echo "Warning: Failed to set refresh rate"
+else
+    echo "Warning: Internal display (eDP-1) not found, skipping refresh rate change"
+fi
+
+# Set power profile to balanced
+tuned-adm profile balanced || echo "Warning: Failed to set power profile"
+
+echo "System set to high performance mode"
+
+# Display notification
+notify-send "Power Management" "High performance settings applied." --icon=battery-full 2>/dev/null
+
+exit 0
